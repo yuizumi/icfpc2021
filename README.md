@@ -1,1 +1,4 @@
-TODO: Decide the team name.
+## Team undefined
+
+See Wiki for up-to-date information.
+
