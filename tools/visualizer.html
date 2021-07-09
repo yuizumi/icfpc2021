@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="UTF-8">
+<style>
+  #svg {
+      border: 1px solid #333;
+      height: 600px;
+      width: 600px;
+  }
+</style>
+<div>
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg"
+       xmlns:xlink="http://www.w3.org/1999/xlink">
+    <path id="hole" style="fill:#666666;fill-rule:evenodd;stroke:none;" />
+    <path id="figure" style="fill:none;stroke:#ffeeee;stroke-linecap:round;" />
+    <path id="output" style="fill:none;stroke:#ff0000;stroke-linecap:round;" />
+  </svg>
+</div>
+<form>
+  <div>
+    <label for="problem">Problem:</label>
+    <input type="file" id="problem">
+  </div>
+  <div>
+    <label for="solution">Solution:</label>
+    <input type="file" id="solution">
+  </div>
+</form>
+<script src="visualizer.js"></script>
