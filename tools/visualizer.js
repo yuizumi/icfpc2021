@@ -1,62 +1,85 @@
 (function() {
-    let edges;
-  
-    function drawHole(hole) {
-        let xmin, ymin, xmax, ymax;
-        let d = '';
+    function computeViewBox(problem) {
+        let xmin = +Infinity;
+        let ymin = +Infinity;
+        let xmax = -Infinity;
+        let ymax = -Infinity;
 
-        for (const v of hole) {
+        for (const v of problem.hole) {
             const x = v[0], y = v[1];
-            if (!d) {
-                xmin = x; ymin = y;
-                xmax = x; ymax = y;
-                d += `M ${x},${y} `;
-            } else {
-                xmin = Math.min(xmin, x);
-                ymin = Math.min(ymin, y);
-                xmax = Math.max(xmax, x);
-                ymax = Math.max(ymax, y);
-                d += `L ${x},${y} `;
-            }
+            xmin = Math.min(xmin, x); ymin = Math.min(ymin, y);
+            xmax = Math.max(xmax, x); ymax = Math.max(ymax, y);
+        }
+        for (const v of problem.figure.vertices) {
+            const x = v[0], y = v[1];
+            xmin = Math.min(xmin, x); ymin = Math.min(ymin, y);
+            xmax = Math.max(xmax, x); ymax = Math.max(ymax, y);
         }
 
-        xmin -= 5; ymin -= 5; xmax += 5; ymax += 5;
-        d += `Z M ${xmin} ${ymin} L ${xmax} ${ymin} L ${xmax} ${ymax} L ${xmin} ${ymax}`;
-        document.getElementById('hole').setAttribute('d', d);
+        xmin -= 5; ymin -= 5;
+        xmax += 5; ymax += 5;
 
-        document.getElementById('svg')
-            .setAttribute('viewBox', `${xmin} ${ymin} ${xmax} ${ymax}`);
+        return [xmin, ymin, xmax, ymax];
     }
 
-    function drawFigure(id, vertices, edges) {
-        let d = '';
+    function buildHolePath(vertices, viewBox) {
+        let path = '';
+
+        for (const v of vertices) {
+            const x = v[0], y = v[1];
+            path += path ? 'L' : 'M';
+            path += ` ${v[0]} ${v[1]} `;
+        }
+
+        const xmin = viewBox[0];
+        const ymin = viewBox[1];
+        const xmax = viewBox[2];
+        const ymax = viewBox[3];
+        path += `Z M ${xmin} ${ymin} L ${xmax} ${ymin} L ${xmax} ${ymax} `
+            + `L ${xmin} ${ymax}`;
+
+        return path;
+    }
+
+    function buildFigurePath(vertices, edges) {
+        let path = '';
 
         for (const e of edges) {
-            const u = vertices[e[0]], v = vertices[e[1]];
-            d += `M ${u[0]},${u[1]} L ${v[0]},${v[1]} `;
+            const u = vertices[e[0]], ux = u[0], uy = u[1];
+            const v = vertices[e[1]], vx = v[0], vy = v[1];
+            path += `M ${ux},${uy} L ${vx},${vy} `;
         }
 
-        document.getElementById(id).setAttribute('d', d);
+        return path;
     }
 
-    const problem = document.getElementById('problem');
-    const solution = document.getElementById('solution');
+    const $ = (query) => document.querySelector(query);
 
-    problem.addEventListener('change', () => {
-        problem.files[0].text().then(content => {
-            data = JSON.parse(content);
-            edges = data['figure']['edges'];
-            drawHole(data['hole']);
-            drawFigure('figure', data['figure']['vertices'], edges);
-            document.getElementById('output').setAttribute('d', '');
-        });
+    let problem = null;
+
+    $('#problem').addEventListener('change', async () => {
+        const content = await $('#problem').files[0].text();
+
+        problem = JSON.parse(content);
+
+        const viewBox = computeViewBox(problem);
+        const sx = viewBox[0];
+        const sy = viewBox[1];
+        const tx = viewBox[2];
+        const ty = viewBox[3];
+        $('#svg').setAttribute('viewBox', `${sx} ${sy} ${tx - sx} ${ty - sy}`);
+        $('#hole').setAttribute('d', buildHolePath(problem.hole, viewBox));
+        $('#figure').setAttribute(
+            'd', buildFigurePath(problem.figure.vertices, problem.figure.edges));
+        $('#output').removeAttribute('d');
     });
-    solution.addEventListener('change', () => {
-        solution.files[0].text().then(content => {
-            data = JSON.parse(content);
-            if (edges) {
-                drawFigure('output', data['vertices'], edges);
-            }
-        });
+
+    $('#solution').addEventListener('change', async () => {
+        if (!problem) return;
+
+        const content = await $('#solution').files[0].text();
+        solution = JSON.parse(content);
+        $('#output').setAttribute(
+            'd', buildFigurePath(solution.vertices, problem.figure.edges));
     });
 })();
