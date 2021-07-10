@@ -106,4 +106,8 @@ export class Store {
     this.state.dislikes = undefined;
     this.state.errors = undefined;
   }
+
+  @action.bound onInit(): void {
+    this.state.solution = this.state.problem && { vertices: this.state.problem.figure.vertices };
+  }
 }
