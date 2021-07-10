@@ -1,8 +1,8 @@
 export type Problem = {
-    hole: [[number, number]]
+    hole: [number, number][]
     figure: {
-        edges: [[number, number]];
-        vertices: [[number, number]];
+        edges: [number, number][];
+        vertices: [number, number][];
     };
     epsilon: number;
 };

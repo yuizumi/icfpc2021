@@ -1,3 +1,3 @@
 export type Solution = {
-    vertices: [[number, number]];
+    vertices: [number, number][];
 };
