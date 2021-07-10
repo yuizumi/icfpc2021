@@ -13,9 +13,10 @@ using Complex = std::complex<double>;
 using Json = nlohmann::json;
 
 constexpr double kInfinity = std::numeric_limits<double>::infinity();
+constexpr double kEpsDenom = 1e+6;
 
 //------------------------
-//  dblcmp
+//  Compare
 
 inline int dblcmp(double x, double y)
 {
@@ -214,8 +215,6 @@ using Pose = std::vector<Complex>;
 
 bool Validate(const Problem& prob, const Pose& pose)
 {
-    static constexpr double kEpsDenom = 1e+6;
-
     const Polygon& hole = prob.hole();
     const int n = hole.size();
 
