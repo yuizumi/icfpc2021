@@ -110,4 +110,10 @@ export class Store {
   @action.bound onInit(): void {
     this.state.solution = this.state.problem && { vertices: this.state.problem.figure.vertices };
   }
+
+  @action.bound onTraslate(dx: number, dy: number): void {
+    if (this.state.solution != null) {
+      this.state.solution = { vertices: this.state.solution.vertices.map(v => [v[0] + dx, v[1] + dy]) };
+    }
+  }
 }

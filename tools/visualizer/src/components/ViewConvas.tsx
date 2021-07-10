@@ -108,7 +108,7 @@ export class ViewCanvas extends React.Component<Props> {
         return [xmin, ymin, xmax, ymax];
     }
 
-    private buildHolePath(vertices: [[number, number]], viewBox: [number, number, number, number]) {
+    private buildHolePath(vertices: [number, number][], viewBox: [number, number, number, number]) {
         let path = "";
 
         for (const v of vertices) {
@@ -126,7 +126,7 @@ export class ViewCanvas extends React.Component<Props> {
         return path;
     }
 
-    private buildFigurePath(vertices: [[number, number]], edges: [[number, number]]) {
+    private buildFigurePath(vertices: [number, number][], edges: [number, number][]) {
         let path = "";
 
         for (const e of edges) {
