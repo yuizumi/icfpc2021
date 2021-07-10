@@ -15,6 +15,18 @@ using Json = nlohmann::json;
 constexpr double kInfinity = std::numeric_limits<double>::infinity();
 constexpr double kEpsDenom = 1e+6;
 
+namespace impl {
+inline std::vector<Complex> ParseVertices(const Json& json)
+{
+    std::vector<Complex> vertices;
+    vertices.reserve(json.size());
+    for (const Json& xy : json) {
+        vertices.emplace_back(xy[0].get<double>(), xy[1].get<double>());
+    }
+    return vertices;
+}
+}  // namespace impl
+
 //------------------------
 //  Compare
 
@@ -27,6 +39,7 @@ inline int dblcmp(double x, double y)
     else
         return (y - x >= kEpsilon) ? -1 : 0;
 }
+
 
 //------------------------
 //  LineSegment
@@ -63,6 +76,7 @@ inline Intersection Intersects(const LineSegment& l,
     return static_cast<Intersection>(value);
 }
 
+
 //------------------------
 //  Circle
 
@@ -90,6 +104,7 @@ inline std::vector<Complex> GetIntersections(const Circle& c1,
     return {c1.z + w * (c2.z - c1.z), c1.z + std::conj(w) * (c2.z - c1.z)};
 }
 
+
 //------------------------
 //  Polygon
 
@@ -115,12 +130,7 @@ private:
 
 Polygon Polygon::FromJson(const Json& json)
 {
-    std::vector<Complex> v;
-    v.reserve(json.size());
-    for (const Json& xy : json) {
-        v.emplace_back(xy[0].get<double>(), xy[1].get<double>());
-    }
-    return Polygon(std::move(v));
+    return Polygon(impl::ParseVertices(json));
 }
 
 bool Polygon::Contains(Complex z) const
@@ -154,21 +164,16 @@ struct Figure
 
 Figure Figure::FromJson(const Json& json)
 {
-    Figure fig;
-    {
-        const Json& src = json.at("vertices");
-        fig.vertices.reserve(src.size());
-        for (const Json& xy : src) {
-            fig.vertices.emplace_back(xy[0].get<double>(), xy[1].get<double>());
-        }
+    Figure fig = {
+        .vertices = impl::ParseVertices(json.at("vertices")),
+    };
+
+    const Json& src = json.at("edges");
+    fig.edges.reserve(src.size());
+    for (const Json& uv : src) {
+        fig.edges.push_back({uv[0].get<int>(), uv[1].get<int>()});
     }
-    {
-        const Json& src = json.at("edges");
-        fig.edges.reserve(src.size());
-        for (const Json& uv : src) {
-            fig.edges.push_back({uv[0].get<int>(), uv[1].get<int>()});
-        }
-    }
+
     return fig;
 }
 
@@ -213,6 +218,20 @@ Problem Problem::FromJson(const Json& json)
 
 using Pose = std::vector<Complex>;
 
+Pose PoseFromJson(const Json& json)
+{
+    return impl::ParseVertices(json.at("vertices"));
+}
+
+Json PoseToJson(const Pose& pose)
+{
+    Json vertices = Json::array();
+    for (Complex z : pose) {
+        vertices.push_back({static_cast<int>(z.real()), static_cast<int>(z.imag())});
+    }
+    return Json::object({{"vertices", vertices}});
+}
+
 bool Validate(const Problem& prob, const Pose& pose)
 {
     const Polygon& hole = prob.hole();
@@ -252,15 +271,6 @@ long Evaluate(const Problem& prob, const Pose& pose)
     }
 
     return static_cast<long>(sum);
-}
-
-Json ToJson(const Pose& pose)
-{
-    Json vertices = Json::array();
-    for (Complex z : pose) {
-        vertices.push_back({static_cast<int>(z.real()), static_cast<int>(z.imag())});
-    }
-    return Json::object({{"vertices", vertices}});
 }
 
 #endif  // YUIZUMI_COMMON_H_
