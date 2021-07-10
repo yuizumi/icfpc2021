@@ -81,7 +81,6 @@ export class ViewCanvas extends React.Component<Props> {
                 </svg>
             );
         } catch (e) {
-            console.error(e);
             return <div>error</div>;
         }
     }

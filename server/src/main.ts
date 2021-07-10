@@ -1,8 +1,13 @@
 import express from "express";
 import path from "path";
-const app = express()
-const port = 3000
+import crypto from "crypto";
+import childProcess from "child_process";
+import fs from "fs";
+const app = express();
+const port = 3000;
 
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 app.use("/tools", express.static(path.resolve(__dirname, "..", "..", "tools")));
 app.use("/problems", express.static(path.resolve(__dirname, "..", "..", "problems")));
 app.use("/solutions", express.static(path.resolve(__dirname, "..", "..", "solutions")));
@@ -20,6 +25,18 @@ app.get("/", (req, res) => {
 </body>
 </html>
     `);
+});
+app.post("/solutions/eval/:id", (req, res) => {
+    const problemId: string = req.params.id;
+    const problemFile =
+        path.resolve(__dirname, "..", "..", "problems", `${("00" + String(problemId)).substr(-3)}.problem`);
+    const solution = JSON.stringify(req.body);
+    const solutionFile =
+        path.resolve("/tmp", crypto.createHash("sha256").update(solution).digest("hex"));
+    fs.writeFileSync(solutionFile, solution);
+    const evalBin = path.resolve(__dirname, "..", "eval");
+    const result = JSON.parse(childProcess.execSync(`${evalBin} ${problemFile} ${solutionFile}`).toString());
+    res.json(result);
 });
 
 app.listen(port, () => {
