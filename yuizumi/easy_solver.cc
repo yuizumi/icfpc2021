@@ -4,20 +4,21 @@
 
 using namespace std;
 
-std::optional<Pose> Solve(const Problem& p)
+std::optional<Pose> Solve(const Problem& prob)
 {
-    const int n = p.hole().size();
+    const int m = prob.vertices().size();
+    const int n = prob.hole().size();
 
-    if (p.vertices().size() != n)
-        return std::nullopt;
+    if (m > n) return std::nullopt;
 
     vector<int> map(n);
     for (int i = 0; i < n; i++) map[i] = i;
 
-    Pose pose(n);
+    Pose pose(m);
     do {
-        for (int i = 0; i < n; i++) pose[i] = p.hole().vertices()[map[i]];
-        if (Validate(p, pose)) return pose;
+        for (int i = 0; i < m; i++) pose[i] = prob.hole().vertices()[map[i]];
+        if (Validate(prob, pose)) return pose;
+        reverse(map.begin() + m, map.end());
     } while (next_permutation(map.begin(), map.end()));
 
     return std::nullopt;
@@ -32,7 +33,9 @@ int main()
     const std::optional<Pose> pose = Solve(prob);
     if (pose.has_value()) {
         cout << ToJson(*pose) << endl;
-        cerr << "dislikes: " << Evaluate(prob, *pose) << endl;
+        cerr << "dislikes = " << Evaluate(prob, *pose) << endl;
+    } else {
+        cerr << "dislikes = (n/a)" << endl;
     }
     return 0;
 }
