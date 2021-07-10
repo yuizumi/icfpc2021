@@ -7,6 +7,7 @@ export type Props = {
     errors: string[] | undefined;
     onEdit: (solution: string) => void;
     onClear: () => void;
+    onInit: () => void;
 };
 
 export const EditBox = (props: Props) => {
@@ -31,6 +32,7 @@ export const EditBox = (props: Props) => {
             <div>
                 <input type="submit" />
                 <input type="reset" />
+                <button onClick={() => props.onInit()}>初期ポーズを読み込む</button>
             </div>
             <div>
                 <input type="text" readOnly value={"dislikes: " + props.dislikes} />

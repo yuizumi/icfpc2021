@@ -27,6 +27,7 @@ export const Container = observer(({ store }: { store: Store }) => (
                     errors={store.state.errors}
                     onEdit={(solution) => store.onEdit(solution)}
                     onClear={() => store.onClear()}
+                    onInit={() => store.onInit()}
                 />
             </Col>
         </Row>
