@@ -61,4 +61,12 @@ export class Store {
         })
       )
   }
+
+  @action.bound onEdit(solution: string | undefined): void {
+    if(solution != null) {
+      try {
+        this.state.solution = JSON.parse(solution);
+      } catch(e) {}
+    }
+  }
 }
