@@ -23,7 +23,10 @@ export const Container = observer(({ store }: { store: Store }) => (
                 />
                 <EditBox
                     solution={store.state.solution}
+                    dislikes={store.state.dislikes}
+                    errors={store.state.errors}
                     onEdit={(solution) => store.onEdit(solution)}
+                    onClear={() => store.onClear()}
                 />
             </Col>
         </Row>

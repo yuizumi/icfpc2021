@@ -8,6 +8,8 @@ export type VisualizerState = {
   problem: Problem | undefined;
   solution: Solution | undefined;
   numOfProblems: number;
+  dislikes: number | undefined;
+  errors: string[] | undefined;
 };
 
 export class Store {
@@ -20,18 +22,16 @@ export class Store {
     selectedId: undefined,
     problem: undefined,
     solution: undefined,
-    numOfProblems: 78
+    numOfProblems: 78,
+    dislikes: undefined,
+    errors: undefined
   };
 
-  @computed get getScore(): number {
-    return NaN; // TODO
-  }
-
-  @action.bound onMove(idx: number): void {
+  @action.bound async onMove(idx: number): Promise<void> {
     this.state.selectedId = idx;
-    console.log(`fetch ${idx}`, this.state); // TODO
-    this.fetchProblem(idx);
-    this.fetchSolution(idx);
+    await this.fetchProblem(idx);
+    await this.fetchSolution(idx);
+    await this.fetchScore(idx);
   }
 
   private fetchProblem(idx: number): Promise<void> {
@@ -39,7 +39,6 @@ export class Store {
       .then(res => res.ok ? Promise.resolve(res.json()) : Promise.reject())
       .then(
         action((json: Problem) => {
-          console.log("problem", idx, json);
           this.state.problem = json;
         }),
         action(() => {
@@ -53,7 +52,6 @@ export class Store {
       .then(res => res.ok ? Promise.resolve(res.json()) : Promise.reject())
       .then(
         action((json: Solution) => {
-          console.log("solution", idx, json);
           this.state.solution = json;
         }),
         action(() => {
@@ -62,11 +60,50 @@ export class Store {
       )
   }
 
+  private fetchScore(idx: number): Promise<void> {
+    if (this.state.solution != null) {
+      return window.fetch(`http://localhost:3000/solutions/eval/${idx}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(this.state.solution)
+      })
+        .then(res => res.ok ? Promise.resolve(res.json()) : Promise.reject())
+        .then(
+          action((json: {
+            dislikes: number;
+            errors: string[]
+          }) => {
+            this.state.dislikes = json.dislikes;
+            this.state.errors = json.errors;
+          }),
+          action((e) => {
+            this.state.dislikes = undefined;
+            this.state.errors = [e];
+          })
+        )
+    } else {
+      this.state.dislikes = undefined;
+      this.state.errors = undefined;
+      return Promise.resolve();
+    }
+  }
+
   @action.bound onEdit(solution: string | undefined): void {
-    if(solution != null) {
+    if (solution != null) {
       try {
         this.state.solution = JSON.parse(solution);
-      } catch(e) {}
+        if (this.state.selectedId != null) {
+          this.fetchScore(this.state.selectedId);
+        }
+      } catch (e) { }
     }
+  }
+
+  @action.bound onClear(): void {
+    this.state.solution = undefined;
+    this.state.dislikes = undefined;
+    this.state.errors = undefined;
   }
 }
