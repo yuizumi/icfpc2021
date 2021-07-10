@@ -13,9 +13,10 @@ using Complex = std::complex<double>;
 using Json = nlohmann::json;
 
 constexpr double kInfinity = std::numeric_limits<double>::infinity();
+constexpr double kEpsDenom = 1e+6;
 
 //------------------------
-//  dblcmp
+//  Compare
 
 inline int dblcmp(double x, double y)
 {
@@ -60,6 +61,33 @@ inline Intersection Intersects(const LineSegment& l,
     }
     const int value = 1 - std::max(sign1, sign2);
     return static_cast<Intersection>(value);
+}
+
+//------------------------
+//  Circle
+
+struct Circle { Complex z; double r; };
+
+inline std::vector<Complex> GetIntersections(const Circle& c1,
+                                             const Circle& c2)
+{
+    const double a = c1.r / std::abs(c2.z - c1.z);
+    const double b = c2.r / std::abs(c2.z - c1.z);
+
+    const double cos = (a * a + 1.0 - b * b) / (2.0 * a);
+
+    if (dblcmp(cos, -1.0) < 0 || dblcmp(cos, +1.0) > 0) {
+        return {};
+    }
+    if (dblcmp(cos, +1.0) == 0) {
+        return {c1.z + a * (c2.z - c1.z)};
+    }
+    if (dblcmp(cos, -1.0) == 0) {
+        return {c1.z - a * (c2.z - c1.z)};
+    }
+
+    const Complex w = std::polar(a, std::acos(cos));
+    return {c1.z + w * (c2.z - c1.z), c1.z + std::conj(w) * (c2.z - c1.z)};
 }
 
 //------------------------
@@ -187,8 +215,6 @@ using Pose = std::vector<Complex>;
 
 bool Validate(const Problem& prob, const Pose& pose)
 {
-    static constexpr double kEpsDenom = 1e+6;
-
     const Polygon& hole = prob.hole();
     const int n = hole.size();
 
