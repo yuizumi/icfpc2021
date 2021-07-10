@@ -185,20 +185,20 @@ Problem Problem::FromJson(const Json& json)
 
 using Pose = std::vector<Complex>;
 
-bool Validate(const Problem& problem, const Pose& pose)
+bool Validate(const Problem& prob, const Pose& pose)
 {
-    constexpr double kEpsDenom = 1e+6;
+    static constexpr double kEpsDenom = 1e+6;
 
-    const Polygon& hole = problem.hole();
+    const Polygon& hole = prob.hole();
     const int n = hole.size();
 
     for (const Complex z : pose) {
         if (!hole.Contains(z)) return false;
     }
 
-    const std::vector<Complex>& orig = problem.vertices();
+    const std::vector<Complex>& orig = prob.vertices();
 
-    for (const Edge& e : problem.edges()) {
+    for (const Edge& e : prob.edges()) {
         for (int i = 0; i < n; i++) {
             const Complex zi = hole.vertices()[(i + 0) % n];
             const Complex zj = hole.vertices()[(i + 1) % n];
@@ -208,18 +208,18 @@ bool Validate(const Problem& problem, const Pose& pose)
 
         const double d_pose = norm(pose[e.u] - pose[e.v]);
         const double d_orig = norm(orig[e.u] - orig[e.v]);
-        if (abs(d_pose - d_orig) * kEpsDenom > problem.epsilon() * d_orig)
+        if (abs(d_pose - d_orig) * kEpsDenom > prob.epsilon() * d_orig)
             return false;
     }
 
     return true;
 }
 
-long Evaluate(const Problem& problem, const Pose& pose)
+long Evaluate(const Problem& prob, const Pose& pose)
 {
     double sum = 0.0;
 
-    for (const Complex z_hole : problem.hole().vertices()) {
+    for (const Complex z_hole : prob.hole().vertices()) {
         double min = kInfinity;
         for (const Complex z_pose : pose) min = std::min(min, norm(z_hole - z_pose));
         sum += min;
