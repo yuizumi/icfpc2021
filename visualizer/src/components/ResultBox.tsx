@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Solution } from "../entities/Solution";
+import { EvalError } from "../entities/EvalError";
 
 export type Props = {
     dislikes: number | undefined;
-    errors: string[] | undefined;
+    errors: EvalError[] | undefined;
 };
 
 export const ResultBox = (props: Props) => {
@@ -17,7 +17,7 @@ export const ResultBox = (props: Props) => {
                     cols={80}
                     rows={20}
                     readOnly
-                    value={JSON.stringify(props.errors)}
+                    value={props.errors && props.errors.map(e => e.message).join("\n")}
                 />
             </div>
         </div>

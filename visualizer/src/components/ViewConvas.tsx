@@ -38,7 +38,7 @@ export class ViewCanvas extends React.Component<Props> {
                         style={{
                             fill: "#666",
                             fillRule: "evenodd",
-                            stroke: "ActiveBorder"
+                            stroke: "none"
                         }}
                         d={(() => {
                             if (this.props.problem != null && viewBox != null) {
