@@ -1,4 +1,5 @@
 import { observable, action, computed, makeAutoObservable } from "mobx";
+import { EvalError } from "../entities/EvalError";
 import { Problem } from "../entities/Problem";
 import { Solution } from "../entities/Solution";
 
@@ -9,7 +10,7 @@ export type VisualizerState = {
   solution: Solution | undefined;
   numOfProblems: number;
   dislikes: number | undefined;
-  errors: string[] | undefined;
+  errors: EvalError[] | undefined;
 };
 
 export class Store {
@@ -73,7 +74,7 @@ export class Store {
         .then(
           action((json: {
             dislikes: number;
-            errors: string[]
+            errors: EvalError[]
           }) => {
             this.state.dislikes = json.dislikes;
             this.state.errors = json.errors;
