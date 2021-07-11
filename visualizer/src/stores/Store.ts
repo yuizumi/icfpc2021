@@ -23,7 +23,7 @@ export class Store {
     selectedId: undefined,
     problem: undefined,
     solution: undefined,
-    numOfProblems: 88,
+    numOfProblems: 106,
     dislikes: undefined,
     errors: undefined
   };
