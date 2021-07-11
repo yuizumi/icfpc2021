@@ -15,7 +15,8 @@ using namespace std;
 //  Parameters
 
 constexpr int kMaxRetries = 10;
-
+constexpr int kMaxTotalRetries = 100000;
+constexpr int kNumPoses = 50;
 
 //------------------------
 //  Utility
@@ -42,6 +43,7 @@ public:
 
     optional<Pose> MakePose() {
         Pose pose(prob_.vertices().size());
+        trial_ = 0;
         if (MakePose(pose, 0)) return pose;
         return nullopt;
     }
@@ -53,14 +55,16 @@ private:
     void InitOrder();
 
     optional<Complex> PickPoint0(const Pose& pose, int v);
-    optional<Complex> PickPoint1(const Pose& pose, int v);
-    optional<Complex> PickPoint2(const Pose& pose, int v);
+    optional<Complex> PickPoint1(const Pose& pose, int v, int u);
+    optional<Complex> PickPoint2(const Pose& pose, int v, int u, int t);
     optional<Complex> PickPoint(const Pose& pose, int v);
 
     const Problem& prob_;
 
     vector<int> order_;
     vector<vector<int>> adj_;
+
+    int trial_;
 
     mt19937 rng_;
 
@@ -138,20 +142,18 @@ optional<Complex> Poser::PickPoint0(const Pose& pose, const int v)
     }
 }
 
-optional<Complex> Poser::PickPoint1(const Pose& pose, const int v)
+optional<Complex> Poser::PickPoint1(const Pose& pose, const int v, const int u)
 {
     const vector<Complex>& orig = prob_.vertices();
-    const int u = adj_[v][0];
 
     const double dist = sqrt(norm(orig[v] - orig[u]) * eps_chooser_(rng_));
     return pose[u] + polar(dist, arg_chooser_(rng_));
 }
 
-optional<Complex> Poser::PickPoint2(const Pose& pose, const int v)
+optional<Complex> Poser::PickPoint2(const Pose& pose, const int v, const int u,
+                                    const int t)
 {
     const vector<Complex>& orig = prob_.vertices();
-    const int t = adj_[v][0];
-    const int u = adj_[v][1];
 
     const vector<Complex> zs = GetIntersections(
         Circle{pose[t], sqrt(norm(orig[v] - orig[t]) * eps_chooser_(rng_))},
@@ -164,15 +166,26 @@ optional<Complex> Poser::PickPoint2(const Pose& pose, const int v)
 
 optional<Complex> Poser::PickPoint(const Pose& pose, const int v)
 {
-    if (adj_[v].size() == 0) return PickPoint0(pose, v);
-    if (adj_[v].size() == 1) return PickPoint1(pose, v);
-    return PickPoint2(pose, v);
+    int adj = -1;
+
+    for (const int u : adj_[v]) {
+        if (adj == -1) {
+            adj = u;
+        } else {
+            if (pose[u] != pose[adj]) return PickPoint2(pose, v, u, adj);
+        }
+    }
+
+    return (adj == -1) ? PickPoint0(pose, v) : PickPoint1(pose, v, adj);
 }
 
 bool Poser::MakePose(Pose& pose, const int index)
 {
     if (index == order_.size()) {
         return true;
+    }
+    if (++trial_ >= kMaxTotalRetries) {
+        return false;
     }
 
     const int v = order_[index];
@@ -190,6 +203,8 @@ bool Poser::MakePose(Pose& pose, const int index)
             continue;
         done.push_back(pose[v]);
 
+        if (!prob_.hole().Contains(pose[v])) continue;
+
         const bool verify = all_of(adj_[v].begin(), adj_[v].end(), [&](const int u) {
             const double d_pose = norm(pose[u] - pose[v]);
             const double d_orig = norm(orig[u] - orig[v]);
@@ -204,23 +219,38 @@ bool Poser::MakePose(Pose& pose, const int index)
     return false;
 }
 
+optional<Pose> Solve(const Problem& prob)
+{
+    long best_dislikes = numeric_limits<long>::max();
+    optional<Pose> best_pose;
+
+    Poser poser(&prob);
+
+    for (int i = 1; i <= kNumPoses; i++) {
+        const optional<Pose> pose = poser.MakePose();
+        if (pose.has_value()) {
+            const long dislikes = Evaluate(prob, *pose);
+            cerr << "Trial #" << i << ": dislikes = " << dislikes << endl;
+            if (dislikes < best_dislikes) {
+                best_dislikes = dislikes;
+                best_pose = pose;
+            }
+        } else {
+            cerr << "Trial #" << i << ": boo" << endl;
+        }
+    }
+
+    return best_pose;
+}
+
 }  // namespace
 
 int main()
 {
     Json json;
     cin >> json;
-
-    const Problem prob = Problem::FromJson(json);
-
-    const optional<Pose> pose = Poser(&prob).MakePose();
-
-    if (pose.has_value()) {
-        cerr << "dislikes = " << Evaluate(prob, *pose) << endl;
-        cout << PoseToJson(*pose) << endl;
-    } else {
-        cerr << "dislikes = boo" << endl;
-    }
+    const optional<Pose> pose = Solve(Problem::FromJson(json));
+    if (pose.has_value()) cout << PoseToJson(*pose) << endl;
 
     return 0;
 }

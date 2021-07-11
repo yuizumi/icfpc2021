@@ -82,8 +82,8 @@ inline Intersection Intersects(const LineSegment& l,
 
 struct Circle { Complex z; double r; };
 
-inline std::vector<Complex> GetIntersections(const Circle& c1,
-                                             const Circle& c2)
+inline std::vector<Complex> GetIntersections(
+    const Circle& c1, const Circle& c2)
 {
     const double a = c1.r / std::abs(c2.z - c1.z);
     const double b = c2.r / std::abs(c2.z - c1.z);
