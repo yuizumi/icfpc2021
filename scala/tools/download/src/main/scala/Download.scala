@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 object Download {
   def main(args: Array[String]): Unit = {
     for {
-      idx <- 1 to 88
+      idx <- 1 to 106
     } {
       println(idx)
       val request = basicRequest
