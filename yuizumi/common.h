@@ -135,7 +135,7 @@ Polygon Polygon::FromJson(const Json& json)
 
 bool Polygon::Contains(Complex z) const
 {
-    const LineSegment line = {z, Complex(1e+8, 0.5)};
+    const LineSegment line = {z, Complex(1e+6, 0.5)};
 
     bool result = false;
 
