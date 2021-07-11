@@ -13,9 +13,9 @@ export const Rotation = (props: Props) => {
                 props.onSubmit(parseInt(target.cx.value, 10), parseInt(target.cy.value, 10), parseInt(target.deg.value, 10));
             }}
         >
-            <input type="text" name="cx" placeholder="cx" />
-            <input type="text" name="cy" placeholder="cy" />
-            <input type="text" name="deg" placeholder="deg" />
+            <input type="text" name="cx" placeholder="cx" required />
+            <input type="text" name="cy" placeholder="cy" required />
+            <input type="text" name="deg" placeholder="deg" required />
             <input type="submit" value="回転移動する" />
         </form>
     );

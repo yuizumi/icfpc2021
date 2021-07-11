@@ -8,6 +8,7 @@ import { EditBox } from "../components/EditBox";
 import { ResultBox } from "../components/ResultBox";
 import { Translation } from "../components/Translation";
 import { Rotation } from "../components/Rotation";
+import { ZRotation } from "../components/ZRotation";
 import { Round } from "../components/Round";
 
 export const Container = observer(({ store }: { store: Store }) => (
@@ -30,6 +31,9 @@ export const Container = observer(({ store }: { store: Store }) => (
                 />
                 <Rotation
                     onSubmit={(cx, cy, deg) => store.onRotate(cx, cy, deg)}
+                />
+                <ZRotation
+                    onSubmit={(v, base, axis) => store.onZRotate(v, base, axis)}
                 />
                 <Round
                     onRound={() => store.onRound()}
