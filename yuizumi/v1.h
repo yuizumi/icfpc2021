@@ -4,7 +4,6 @@
 
 #include <complex>
 #include <limits>
-#include <optional>
 #include <utility>
 #include <vector>
 #include "json.hpp"
