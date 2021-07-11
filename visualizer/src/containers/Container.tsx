@@ -10,6 +10,7 @@ import { Translation } from "../components/Translation";
 import { Rotation } from "../components/Rotation";
 import { ZRotation } from "../components/ZRotation";
 import { Round } from "../components/Round";
+import { SegRotation } from "../components/SegRotation";
 
 export const Container = observer(({ store }: { store: Store }) => (
     <BootstrapContainer>
@@ -22,6 +23,7 @@ export const Container = observer(({ store }: { store: Store }) => (
                 />
             </Col>
             <Col md="auto">
+                <h1>{store.state.selectedId}</h1>
                 <View
                     problem={store.state.problem}
                     solution={store.state.solution}
@@ -34,6 +36,9 @@ export const Container = observer(({ store }: { store: Store }) => (
                 />
                 <ZRotation
                     onSubmit={(v, base, axis) => store.onZRotate(v, base, axis)}
+                />
+                <SegRotation
+                    onSubmit={(v, from, to) => store.onSegRotate(v, from, to)}
                 />
                 <Round
                     onRound={() => store.onRound()}
