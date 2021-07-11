@@ -55,9 +55,10 @@ private:
     void InitXYChooser();
     void InitOrder();
 
-    optional<Complex> PickPoint0(const Pose& pose, int v);
     optional<Complex> PickPoint1(const Pose& pose, int v, int u);
     optional<Complex> PickPoint2(const Pose& pose, int v, int u, int t);
+    optional<Complex> PickFromHole(const Pose& pose, int v);
+
     optional<Complex> PickPoint(const Pose& pose, int v);
 
     const Problem& prob_;
@@ -113,27 +114,9 @@ void Poser::InitOrder()
     }
 }
 
-optional<Complex> Poser::PickPoint0(const Pose& pose, const int v)
-{
-    return prob_.hole().vertices()[hole_chooser_(rng_)];
-}
-
 optional<Complex> Poser::PickPoint1(const Pose& pose, const int v, const int u)
 {
     const vector<Complex>& orig = prob_.vertices();
-
-    const int offset = hole_chooser_(rng_);
-    const Polygon& hole = prob_.hole();
-
-    for (int i = 0; i < hole.size(); i++) {
-        const Complex z = hole.vertices()[(i + offset) % hole.size()];
-        const double d_orig = norm(orig[v] - orig[u]);
-        const double d_pose = norm(z - pose[u]);
-        if ((d_pose - d_orig) * kEpsDenom > prob_.epsilon() * d_orig) {
-            continue;
-        }
-        if (!Intersects(hole, LineSegment{pose[u], z})) return z;
-    }
 
     const double dist = sqrt(norm(orig[v] - orig[u]) * eps_chooser_(rng_));
     return pose[u] + polar(dist, arg_chooser_(rng_));
@@ -144,22 +127,6 @@ optional<Complex> Poser::PickPoint2(const Pose& pose, const int v, const int u,
 {
     const vector<Complex>& orig = prob_.vertices();
 
-    const int offset = hole_chooser_(rng_);
-    const Polygon& hole = prob_.hole();
-
-    for (int i = 0; i < hole.size(); i++) {
-        const Complex z = hole.vertices()[(i + offset) % hole.size()];
-        const bool verify = all_of(adj_[v].begin(), adj_[v].end(), [&](const int w) {
-            const double d_orig = norm(orig[v] - orig[w]);
-            const double d_pose = norm(z - pose[w]);
-            if ((d_pose - d_orig) * kEpsDenom > prob_.epsilon() * d_orig) {
-                return false;
-            }
-            return !Intersects(hole, LineSegment{pose[u], z});
-        });
-        if (verify) return z;
-    }
-
     const vector<Complex> zs = GetIntersections(
         Circle{pose[t], sqrt(norm(orig[v] - orig[t]) * eps_chooser_(rng_))},
         Circle{pose[u], sqrt(norm(orig[v] - orig[u]) * eps_chooser_(rng_))}
@@ -169,8 +136,43 @@ optional<Complex> Poser::PickPoint2(const Pose& pose, const int v, const int u,
     return (bool_chooser_(rng_)) ? zs.front() : zs.back();
 }
 
+optional<Complex> Poser::PickFromHole(const Pose& pose, const int v)
+{
+    const vector<Complex>& orig = prob_.vertices();
+
+    const int offset = hole_chooser_(rng_);
+    const Polygon& hole = prob_.hole();
+
+    for (int i = 0; i < hole.size(); i++) {
+        const Complex z = hole.vertices()[(i + offset) % hole.size()];
+        bool done = false;
+
+        for (const int j : order_) {
+            if (j == v) break;
+            if (pose[j] == z) { done = true; break; }
+        }
+        if (done) continue;
+
+        const bool verify = all_of(adj_[v].begin(), adj_[v].end(), [&](const int w) {
+            const double d_orig = norm(orig[v] - orig[w]);
+            const double d_pose = norm(z - pose[w]);
+            if ((d_pose - d_orig) * kEpsDenom > prob_.epsilon() * d_orig) {
+                return false;
+            }
+            return !Intersects(hole, LineSegment{pose[w], z});
+        });
+
+        if (verify) return z;
+    }
+
+    return nullopt;
+}
+
 optional<Complex> Poser::PickPoint(const Pose& pose, const int v)
 {
+    optional<Complex> z = PickFromHole(pose, v);
+    if (z.has_value()) return z;
+
     int adj = -1;
 
     for (const int u : adj_[v]) {
@@ -181,7 +183,7 @@ optional<Complex> Poser::PickPoint(const Pose& pose, const int v)
         }
     }
 
-    return (adj == -1) ? PickPoint0(pose, v) : PickPoint1(pose, v, adj);
+    return PickPoint1(pose, v, adj);
 }
 
 bool Poser::MakePose(Pose& pose, const int index)
