@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <iostream>
-#include "common.h"
+#include "v1.h"
 
 using namespace std;
 
@@ -32,7 +32,7 @@ int main()
     const Problem prob = Problem::FromJson(json);
     const std::optional<Pose> pose = Solve(prob);
     if (pose.has_value()) {
-        cout << ToJson(*pose) << endl;
+        cout << PoseToJson(*pose) << endl;
         cerr << "dislikes = " << Evaluate(prob, *pose) << endl;
     } else {
         cerr << "dislikes = (n/a)" << endl;

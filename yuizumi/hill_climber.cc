@@ -1,7 +1,7 @@
 #include <iostream>
 #include <optional>
 #include <random>
-#include "common.h"
+#include "v1.h"
 
 using namespace std;
 
@@ -222,7 +222,7 @@ int main()
     const Pose pose = Solve(prob);
 
     if (Validate(prob, pose)) {
-        cout << ToJson(pose) << endl;
+        cout << PoseToJson(pose) << endl;
         cerr << "dislikes = " << Evaluate(prob, pose) << endl;
     } else {
         cerr << "dislikes = (error)" << endl;

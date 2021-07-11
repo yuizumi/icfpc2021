@@ -21,7 +21,7 @@ constexpr int kNumPoses = 100;
 #else
 constexpr int kMaxRetries = 50;
 constexpr int kMaxTotalRetries = 50000;
-constexpr int kNumPoses = 5000;
+constexpr int kNumPoses = 1000;
 #endif
 
 
