@@ -55,8 +55,8 @@ private:
     void InitOrder();
 
     optional<Complex> PickPoint0(const Pose& pose, int v);
-    optional<Complex> PickPoint1(const Pose& pose, int v);
-    optional<Complex> PickPoint2(const Pose& pose, int v);
+    optional<Complex> PickPoint1(const Pose& pose, int v, int u);
+    optional<Complex> PickPoint2(const Pose& pose, int v, int u, int t);
     optional<Complex> PickPoint(const Pose& pose, int v);
 
     const Problem& prob_;
@@ -142,20 +142,18 @@ optional<Complex> Poser::PickPoint0(const Pose& pose, const int v)
     }
 }
 
-optional<Complex> Poser::PickPoint1(const Pose& pose, const int v)
+optional<Complex> Poser::PickPoint1(const Pose& pose, const int v, const int u)
 {
     const vector<Complex>& orig = prob_.vertices();
-    const int u = adj_[v][0];
 
     const double dist = sqrt(norm(orig[v] - orig[u]) * eps_chooser_(rng_));
     return pose[u] + polar(dist, arg_chooser_(rng_));
 }
 
-optional<Complex> Poser::PickPoint2(const Pose& pose, const int v)
+optional<Complex> Poser::PickPoint2(const Pose& pose, const int v, const int u,
+                                    const int t)
 {
     const vector<Complex>& orig = prob_.vertices();
-    const int t = adj_[v][0];
-    const int u = adj_[v][1];
 
     const vector<Complex> zs = GetIntersections(
         Circle{pose[t], sqrt(norm(orig[v] - orig[t]) * eps_chooser_(rng_))},
@@ -168,9 +166,17 @@ optional<Complex> Poser::PickPoint2(const Pose& pose, const int v)
 
 optional<Complex> Poser::PickPoint(const Pose& pose, const int v)
 {
-    if (adj_[v].size() == 0) return PickPoint0(pose, v);
-    if (adj_[v].size() == 1) return PickPoint1(pose, v);
-    return PickPoint2(pose, v);
+    int adj = -1;
+
+    for (const int u : adj_[v]) {
+        if (adj == -1) {
+            adj = u;
+        } else {
+            if (pose[u] != pose[adj]) return PickPoint2(pose, v, u, adj);
+        }
+    }
+
+    return (adj == -1) ? PickPoint0(pose, v) : PickPoint1(pose, v, adj);
 }
 
 bool Poser::MakePose(Pose& pose, const int index)
