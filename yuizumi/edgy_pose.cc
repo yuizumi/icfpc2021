@@ -14,14 +14,12 @@ using namespace std;
 //------------------------
 //  Parameters
 
-#if PARAM_SET == 1
+#ifdef HEAVY
 constexpr int kMaxRetries = 100;
 constexpr int kMaxTotalRetries = 1000000;
-constexpr int kNumPoses = 100;
 #else
 constexpr int kMaxRetries = 50;
 constexpr int kMaxTotalRetries = 50000;
-constexpr int kNumPoses = 5000;
 #endif
 
 
@@ -235,14 +233,14 @@ bool Poser::MakePose(Pose& pose, const int index)
     return false;
 }
 
-optional<Pose> Solve(const Problem& prob)
+optional<Pose> Solve(const Problem& prob, int num_poses)
 {
     long best_dislikes = numeric_limits<long>::max();
     optional<Pose> best_pose;
 
     Poser poser(&prob);
 
-    for (int i = 1; i <= kNumPoses; i++) {
+    for (int i = 1; i <= num_poses; i++) {
         const optional<Pose> pose = poser.MakePose();
         if (pose.has_value()) {
             const long dislikes = Dislikes(prob, *pose);
@@ -264,11 +262,12 @@ optional<Pose> Solve(const Problem& prob)
 
 }  // namespace
 
-int main()
+int main(int argc, char* argv[])
 {
+    const int num_poses = (argc == 1) ? 1000 : atoi(argv[1]);
     Json json;
     cin >> json;
-    const optional<Pose> pose = Solve(Problem::FromJson(json));
+    const optional<Pose> pose = Solve(Problem::FromJson(json), num_poses);
     if (pose.has_value()) cout << PoseToJson(*pose) << endl;
 
     return 0;
