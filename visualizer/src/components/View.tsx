@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ViewCanvas, Props } from "./ViewConvas";
+import { ViewCanvas, Props } from "./ViewCanvas";
 
 export { Props };
 
