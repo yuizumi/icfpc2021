@@ -14,9 +14,15 @@ using namespace std;
 //------------------------
 //  Parameters
 
+#if PARAM_SET == 1
 constexpr int kMaxRetries = 100;
 constexpr int kMaxTotalRetries = 1000000;
 constexpr int kNumPoses = 100;
+#else
+constexpr int kMaxRetries = 50;
+constexpr int kMaxTotalRetries = 50000;
+constexpr int kNumPoses = 1000;
+#endif
 
 //------------------------
 //  Utility
@@ -238,15 +244,16 @@ optional<Pose> Solve(const Problem& prob)
         const optional<Pose> pose = poser.MakePose();
         if (pose.has_value()) {
             const long dislikes = Evaluate(prob, *pose);
-            cerr << "Trial #" << i << ": dislikes = " << dislikes << endl;
             if (dislikes == 0) return pose;
 
             if (dislikes < best_dislikes) {
+                cerr << "Trial #" << i << ": dislikes = " << dislikes << endl;
                 best_dislikes = dislikes;
                 best_pose = pose;
             }
-        } else {
-            cerr << "Trial #" << i << ": boo" << endl;
+        }
+        if (i % 100 == 0) {
+            cerr << "(" << i << " trials)" << endl;
         }
     }
 
