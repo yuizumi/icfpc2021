@@ -15,7 +15,8 @@ using namespace std;
 //  Parameters
 
 constexpr int kMaxRetries = 10;
-
+constexpr int kMaxTotalRetries = 100000;
+constexpr int kNumPoses = 50;
 
 //------------------------
 //  Utility
@@ -42,6 +43,7 @@ public:
 
     optional<Pose> MakePose() {
         Pose pose(prob_.vertices().size());
+        trial_ = 0;
         if (MakePose(pose, 0)) return pose;
         return nullopt;
     }
@@ -61,6 +63,8 @@ private:
 
     vector<int> order_;
     vector<vector<int>> adj_;
+
+    int trial_;
 
     mt19937 rng_;
 
@@ -174,6 +178,9 @@ bool Poser::MakePose(Pose& pose, const int index)
     if (index == order_.size()) {
         return true;
     }
+    if (++trial_ >= kMaxTotalRetries) {
+        return false;
+    }
 
     const int v = order_[index];
 
@@ -206,23 +213,38 @@ bool Poser::MakePose(Pose& pose, const int index)
     return false;
 }
 
+optional<Pose> Solve(const Problem& prob)
+{
+    long best_dislikes = numeric_limits<long>::max();
+    optional<Pose> best_pose;
+
+    Poser poser(&prob);
+
+    for (int i = 1; i <= kNumPoses; i++) {
+        const optional<Pose> pose = poser.MakePose();
+        if (pose.has_value()) {
+            const long dislikes = Evaluate(prob, *pose);
+            cerr << "Trial #" << i << ": dislikes = " << dislikes << endl;
+            if (dislikes < best_dislikes) {
+                best_dislikes = dislikes;
+                best_pose = pose;
+            }
+        } else {
+            cerr << "Trial #" << i << ": boo" << endl;
+        }
+    }
+
+    return best_pose;
+}
+
 }  // namespace
 
 int main()
 {
     Json json;
     cin >> json;
-
-    const Problem prob = Problem::FromJson(json);
-
-    const optional<Pose> pose = Poser(&prob).MakePose();
-
-    if (pose.has_value()) {
-        cerr << "dislikes = " << Evaluate(prob, *pose) << endl;
-        cout << PoseToJson(*pose) << endl;
-    } else {
-        cerr << "dislikes = boo" << endl;
-    }
+    const optional<Pose> pose = Solve(Problem::FromJson(json));
+    if (pose.has_value()) cout << PoseToJson(*pose) << endl;
 
     return 0;
 }
