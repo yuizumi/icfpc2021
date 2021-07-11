@@ -5,10 +5,9 @@ import sys
 
 
 def main(argv):
-    fields = [
-        'prob', 'hole', 'vert', 'edge', 'eps', 'min', 'max', 'bonus',
-    ]
-    writer = csv.DictWriter(sys.stdout, fields, delimiter='\t')
+    fields = ['prob', 'hole', 'vert', 'edge', 'eps', 'min', 'max', 'bonus']
+
+    writer = csv.DictWriter(sys.stdout, fields)
     writer.writeheader()
 
     for path in argv[1:]:
