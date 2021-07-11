@@ -244,17 +244,20 @@ bool Validate(const Problem& prob, const Pose& pose)
     const std::vector<Complex>& orig = prob.vertices();
 
     for (const Edge& e : prob.edges()) {
+        const double d_pose = norm(pose[e.u] - pose[e.v]);
+        const double d_orig = norm(orig[e.u] - orig[e.v]);
+        if (abs(d_pose - d_orig) * kEpsDenom > prob.epsilon() * d_orig)
+            return false;
+
+        if (!hole.Contains((pose[e.u] + pose[e.v]) / 2.0))
+            return false;
+
         for (int i = 0; i < n; i++) {
             const Complex zi = hole.vertices()[(i + 0) % n];
             const Complex zj = hole.vertices()[(i + 1) % n];
             if (Intersects({pose[e.u], pose[e.v]}, {zi, zj}) == kCrossing)
                 return false;
         }
-
-        const double d_pose = norm(pose[e.u] - pose[e.v]);
-        const double d_orig = norm(orig[e.u] - orig[e.v]);
-        if (abs(d_pose - d_orig) * kEpsDenom > prob.epsilon() * d_orig)
-            return false;
     }
 
     return true;

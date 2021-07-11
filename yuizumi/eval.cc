@@ -32,7 +32,8 @@ Json FullValidate(const Problem& prob, const Pose& pose) {
     const std::vector<Complex>& orig = prob.vertices();
 
     for (const Edge& e : prob.edges()) {
-        bool good = hole.Contains(pose[e.u]) && hole.Contains(pose[e.v]);
+        bool good = hole.Contains(pose[e.u]) && hole.Contains(pose[e.v]) &&
+            hole.Contains((pose[e.u] + pose[e.v]) / 2.0);
 
         for (int i = 0; good && i < n; i++) {
             const Complex zi = hole.vertices()[(i + 0) % n];

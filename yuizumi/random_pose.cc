@@ -16,7 +16,7 @@ using namespace std;
 
 constexpr int kMaxRetries = 10;
 constexpr int kMaxTotalRetries = 100000;
-constexpr int kNumPoses = 50;
+constexpr int kNumPoses = 100;
 
 //------------------------
 //  Utility
@@ -29,7 +29,7 @@ bool Intersects(const Polygon& hole, const LineSegment& line)
         const int j = (i + 1) % hole.size();
         if (Intersects({v[i], v[j]}, line) == kCrossing) return true;
     }
-    return false;
+    return !hole.Contains((line.z1 + line.z2) / 2.0);
 }
 
 
