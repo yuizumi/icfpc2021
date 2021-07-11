@@ -117,4 +117,37 @@ export class Store {
       this.state.solution = { vertices: this.state.solution.vertices.map(v => [v[0] + dx, v[1] + dy]) };
     }
   }
+
+  @action.bound onRotate(cx: number, cy: number, deg: number): void {
+    if (this.state.solution != null) {
+      this.state.solution = {
+        vertices: this.state.solution.vertices.map(v => {
+          const dx = v[0] - cx;
+          const dy = v[1] - cy;
+          const rad = deg * Math.PI / 180;
+          const dx_ = Math.cos(rad) * dx - Math.sin(rad) * dy;
+          const dy_ = Math.sin(rad) * dx + Math.cos(rad) * dy;
+          return [cx + dx_, cy + dy_];
+        })
+      };
+    }
+  }
+
+  @action.bound onRound(): void {
+    if (this.state.solution != null) {
+      this.state.solution = { vertices: this.state.solution.vertices.map(v => [Math.round(v[0]), Math.round(v[1])]) };
+    }
+  }
+
+  @action.bound onCeil(): void {
+    if (this.state.solution != null) {
+      this.state.solution = { vertices: this.state.solution.vertices.map(v => [Math.ceil(v[0]), Math.ceil(v[1])]) };
+    }
+  }
+
+  @action.bound onFloor(): void {
+    if (this.state.solution != null) {
+      this.state.solution = { vertices: this.state.solution.vertices.map(v => [Math.floor(v[0]), Math.floor(v[1])]) };
+    }
+  }
 }

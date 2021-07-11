@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Solution } from "../entities/Solution";
 
 export type Props = {
     onSubmit: (dx: number, dy: number) => void;
@@ -14,11 +13,9 @@ export const Translation = (props: Props) => {
                 props.onSubmit(parseInt(target.dx.value, 10), parseInt(target.dy.value, 10));
             }}
         >
-            <div>
-                <input type="text" name="dx" defaultValue={0} />
-                <input type="text" name="dy" defaultValue={0} />
-                <input type="submit" value="平行移動する" />
-            </div>
+            <input type="text" name="dx" placeholder="dx" />
+            <input type="text" name="dy" placeholder="dy" />
+            <input type="submit" value="平行移動する" />
         </form>
     );
 };
