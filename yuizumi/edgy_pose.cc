@@ -14,8 +14,8 @@ using namespace std;
 //------------------------
 //  Parameters
 
-constexpr int kMaxRetries = 10;
-constexpr int kMaxTotalRetries = 100000;
+constexpr int kMaxRetries = 100;
+constexpr int kMaxTotalRetries = 1000000;
 constexpr int kNumPoses = 100;
 
 //------------------------
@@ -189,9 +189,6 @@ bool Poser::MakePose(Pose& pose, const int index)
     if (index == order_.size()) {
         return true;
     }
-    if (++trial_ >= kMaxTotalRetries) {
-        return false;
-    }
 
     const int v = order_[index];
 
@@ -199,6 +196,10 @@ bool Poser::MakePose(Pose& pose, const int index)
     vector<Complex> done;
 
     for (int trial = 0; trial < kMaxRetries; ++trial) {
+        if (++trial_ >= kMaxTotalRetries) {
+            return false;
+        }
+
         const optional<Complex> z = PickPoint(pose, v);
         if (!z.has_value()) return false;
 
@@ -236,6 +237,8 @@ optional<Pose> Solve(const Problem& prob)
         if (pose.has_value()) {
             const long dislikes = Evaluate(prob, *pose);
             cerr << "Trial #" << i << ": dislikes = " << dislikes << endl;
+            if (dislikes == 0) return pose;
+
             if (dislikes < best_dislikes) {
                 best_dislikes = dislikes;
                 best_pose = pose;
