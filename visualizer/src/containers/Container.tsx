@@ -7,6 +7,8 @@ import { View } from "../components/View"
 import { EditBox } from "../components/EditBox";
 import { ResultBox } from "../components/ResultBox";
 import { Translation } from "../components/Translation";
+import { Rotation } from "../components/Rotation";
+import { Round } from "../components/Round";
 
 export const Container = observer(({ store }: { store: Store }) => (
     <BootstrapContainer>
@@ -23,14 +25,22 @@ export const Container = observer(({ store }: { store: Store }) => (
                     problem={store.state.problem}
                     solution={store.state.solution}
                 />
+                <Translation
+                    onSubmit={(dx, dy) => store.onTraslate(dx, dy)}
+                />
+                <Rotation
+                    onSubmit={(cx, cy, deg) => store.onRotate(cx, cy, deg)}
+                />
+                <Round
+                    onRound={() => store.onRound()}
+                    onCeil={() => store.onCeil()}
+                    onFloor={() => store.onFloor()}
+                />
                 <EditBox
                     solution={store.state.solution}
                     onEdit={(solution) => store.onEdit(solution)}
                     onClear={() => store.onClear()}
                     onInit={() => store.onInit()}
-                />
-                <Translation
-                    onSubmit={(dx, dy) => store.onTraslate(dx, dy)}
                 />
                 <ResultBox
                     dislikes={store.state.dislikes}
