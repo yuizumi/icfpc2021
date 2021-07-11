@@ -190,6 +190,8 @@ bool Poser::MakePose(Pose& pose, const int index)
             continue;
         done.push_back(pose[v]);
 
+        if (!prob_.hole().Contains(pose[v])) continue;
+
         const bool verify = all_of(adj_[v].begin(), adj_[v].end(), [&](const int u) {
             const double d_pose = norm(pose[u] - pose[v]);
             const double d_orig = norm(orig[u] - orig[v]);
