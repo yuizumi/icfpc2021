@@ -13,8 +13,8 @@ export const Translation = (props: Props) => {
                 props.onSubmit(parseInt(target.dx.value, 10), parseInt(target.dy.value, 10));
             }}
         >
-            <input type="text" name="dx" placeholder="dx" />
-            <input type="text" name="dy" placeholder="dy" />
+            <input type="text" name="dx" placeholder="dx" required />
+            <input type="text" name="dy" placeholder="dy" required />
             <input type="submit" value="平行移動する" />
         </form>
     );

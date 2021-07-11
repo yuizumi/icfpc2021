@@ -150,4 +150,18 @@ export class Store {
       this.state.solution = { vertices: this.state.solution.vertices.map(v => [Math.floor(v[0]), Math.floor(v[1])]) };
     }
   }
+
+  @action.bound onZRotate(v: number, base: number, axis: "x" | "y"): void {
+    if (this.state.solution != null && this.state.solution.vertices[v] != null && this.state.solution.vertices[base] != null) {
+      const a = Array.of(...this.state.solution.vertices);
+      if (axis === "x") {
+        a[v] =
+          [this.state.solution.vertices[v][0], 2 * this.state.solution.vertices[base][1] - this.state.solution.vertices[v][1]];
+      } else {
+        a[v] =
+          [2 * this.state.solution.vertices[base][0] - this.state.solution.vertices[v][0], this.state.solution.vertices[v][1]];
+      }
+      this.state.solution = { vertices: a };
+    }
+  }
 }

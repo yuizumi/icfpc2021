@@ -78,6 +78,13 @@ export class ViewCanvas extends React.Component<Props> {
                             }
                         })()}
                     />
+                    {
+                        this.props.solution?.vertices.map((v, i) => (
+                            <text x={v[0]} y={v[1]} fontSize="3">
+                                {i}
+                            </text>
+                        ))
+                    }
                 </svg>
             );
         } catch (e) {
