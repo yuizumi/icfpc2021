@@ -164,4 +164,20 @@ export class Store {
       this.state.solution = { vertices: a };
     }
   }
+
+  @action.bound onSegRotate(v: number, from: number, to: number): void {
+    if (this.state.solution != null && this.state.solution.vertices[v] != null
+      && this.state.solution.vertices[from] != null && this.state.solution.vertices[to] != null) {
+      const a = Array.of(...this.state.solution.vertices);
+      const f = this.state.solution.vertices[from];
+      const seg = [this.state.solution.vertices[to][0] - f[0], this.state.solution.vertices[to][1] - f[1]];
+      const norm = Math.hypot(...seg);
+      const normalized = seg.map(v => v / norm);
+      const d = [this.state.solution.vertices[v][0] - f[0], this.state.solution.vertices[v][1] - f[1]];
+      const det = normalized[0] * d[0] + normalized[1] * d[1];
+      const p = [d[0] - det * normalized[0], d[1] - det * normalized[1]];
+      a[v] = [f[0] + det * normalized[0] - p[0], f[1] + det * normalized[1] - p[1]];
+      this.state.solution = { vertices: a };
+    }
+  }
 }
