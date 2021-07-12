@@ -19,14 +19,7 @@ constexpr double kInf = std::numeric_limits<double>::infinity();
 //------------------------
 //  Utility
 
-int dblcmp(double x, double y)
-{
-    static constexpr double kEpsilon = 1e-9;
-    if (x > y)
-        return (x - y >= kEpsilon) ? +1 : 0;
-    else
-        return (y - x >= kEpsilon) ? -1 : 0;
-}
+int Sign(double x) { return (x > 0.0) - (x < 0.0); }
 
 namespace std {
 template <> struct hash<Complex>
@@ -76,7 +69,7 @@ inline int Ccw(const LineSeg& l, Complex z)
 {
     const Complex z1 = z - l.z1;
     const Complex z2 = l.z2 - l.z1;
-    return dblcmp(z1.real() * z2.imag() - z2.real() * z1.imag(), 0.0);
+    return Sign(z1.real() * z2.imag() - z2.real() * z1.imag());
 }
 
 inline IntersectsResult Intersects(const LineSeg& l, const LineSeg& m)
@@ -165,16 +158,37 @@ bool Hole::Contains(const LineSeg& line) const
     if (q1 == State::kOutside || q2 == State::kOutside) {
         return false;
     }
-    if (q1 == State::kBorder && q2 == State::kBorder) {  // Ugh.
-        const double scale = std::max(xmax_ - xmin_, ymax_ - ymin_) + 1;
-        const Complex z = line.z1 + (line.z2 - line.z1) / scale;
-        if (ComputeState(z) == State::kOutside) return false;
+
+    std::vector<Complex> touching;
+
+    if (q1 == State::kBorder) touching.push_back(line.z1);
+    if (q2 == State::kBorder) touching.push_back(line.z2);
+
+    for (const LineSeg& border : borders_) {
+        switch (Intersects(line, border)) {
+            case kSeparate: break;
+            case kTouching: {
+                if (Ccw(line, border.z1) == 0) touching.push_back(border.z1);
+                if (Ccw(line, border.z2) == 0) touching.push_back(border.z2);
+                break;
+            }
+            case kCrossing: return false;
+        }
     }
 
-    return std::all_of(borders_.begin(), borders_.end(),
-                       [&](const LineSeg& border) {
-                           return Intersects(line, border) != kCrossing;
-                       });
+    sort(touching.begin(), touching.end(), [&](Complex z1, Complex z2) {
+        return (z1.real() != z2.real())
+            ? z1.real() < z2.real() : z1.imag() < z2.imag();
+    });
+
+    for (int i = 1; i < touching.size(); i++) {
+        if (touching[i - 1] != touching[i]) {
+            const Complex middle = (touching[i - 1] + touching[i]) / 2.0;
+            if (!Contains(middle)) return false;
+        }
+    }
+
+    return true;
 }
 
 Hole::State Hole::ComputeState(Complex z) const

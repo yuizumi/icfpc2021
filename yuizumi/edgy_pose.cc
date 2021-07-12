@@ -28,6 +28,16 @@ constexpr int kMaxTotalRetries = 50000;
 
 struct Circle { Complex z; double r; };
 
+inline int dblcmp(double x, double y)
+{
+    static constexpr double kEpsilon = 1e-9;
+
+    if (x > y)
+        return (x - y >= kEpsilon) ? +1 : 0;
+    else
+        return (y - x >= kEpsilon) ? -1 : 0;
+}
+
 inline std::vector<Complex> GetIntersections(
     const Circle& c1, const Circle& c2)
 {
