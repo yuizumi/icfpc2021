@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <complex>
 #include <limits>
-#include <unordered_set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "json.hpp"
@@ -320,6 +320,41 @@ Json PoseToJson(const Pose& pose)
 Pose PoseFromJson(const Json& json)
 {
     return impl::ParseVertexArray(json.at("vertices"));
+}
+
+
+//------------------------
+//  MoveTable
+
+class MoveTable
+{
+public:
+    MoveTable(int max_dx, int max_dy);
+
+    MoveTable(const MoveTable&) = delete;
+    MoveTable& operator=(const MoveTable&) = delete;
+
+    const std::vector<Complex>& Get(double norm) const {
+        return Get(static_cast<int>(norm));
+    }
+    const std::vector<Complex>& Get(int norm) const {
+        const auto iter = map_.find(norm);
+        return (iter != map_.end()) ? iter->second : empty_;
+    }
+
+private:
+    std::unordered_map<int, std::vector<Complex>> map_;
+    const std::vector<Complex> empty_;
+};
+
+MoveTable::MoveTable(int max_dx, int max_dy)
+{
+    for (int dy = 0; dy <= max_dy; dy++)
+    for (int dx = 0; dx <= max_dx; dx++) {
+        const int norm = dx * dx + dy * dy;
+        map_[norm].emplace_back(-dx, -dy); map_[norm].emplace_back(-dx, +dy);
+        map_[norm].emplace_back(+dx, -dy); map_[norm].emplace_back(+dx, +dy);
+    }
 }
 
 

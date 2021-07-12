@@ -3,6 +3,7 @@
 #include <limits>
 #include <optional>
 #include <random>
+#include <unordered_set>
 #include <vector>
 #include "v2.h"
 
@@ -21,44 +22,6 @@ constexpr int kMaxTotalRetries = 1000000;
 constexpr int kMaxRetries = 50;
 constexpr int kMaxTotalRetries = 50000;
 #endif
-
-
-//------------------------
-//  Circle
-
-struct Circle { Complex z; double r; };
-
-inline int dblcmp(double x, double y)
-{
-    static constexpr double kEpsilon = 1e-9;
-
-    if (x > y)
-        return (x - y >= kEpsilon) ? +1 : 0;
-    else
-        return (y - x >= kEpsilon) ? -1 : 0;
-}
-
-inline std::vector<Complex> GetIntersections(
-    const Circle& c1, const Circle& c2)
-{
-    const double a = c1.r / std::abs(c2.z - c1.z);
-    const double b = c2.r / std::abs(c2.z - c1.z);
-
-    const double cos = (a * a + 1.0 - b * b) / (2.0 * a);
-
-    if (dblcmp(cos, -1.0) < 0 || dblcmp(cos, +1.0) > 0) {
-        return {};
-    }
-    if (dblcmp(cos, +1.0) == 0) {
-        return {c1.z + a * (c2.z - c1.z)};
-    }
-    if (dblcmp(cos, -1.0) == 0) {
-        return {c1.z - a * (c2.z - c1.z)};
-    }
-
-    const Complex w = std::polar(a, std::acos(cos));
-    return {c1.z + w * (c2.z - c1.z), c1.z + std::conj(w) * (c2.z - c1.z)};
-}
 
 
 //------------------------
@@ -91,6 +54,8 @@ private:
 
     const Problem& prob_;
 
+    const MoveTable move_table_;
+
     vector<int> order_;
     vector<vector<int>> adj_;
 
@@ -107,6 +72,8 @@ private:
 // TODO: Initialize rng_ with std::random_device?
 Poser::Poser(const Problem* prob)
     : prob_(*prob),
+      move_table_(prob_.hole().xmax() - prob_.hole().xmin(),
+                  prob_.hole().ymax() - prob_.hole().ymin()),
       hole_chooser_(0, prob_.hole().size() - 1),
       eps_chooser_(1.0 - prob_.epsilon() / kEpsDivisor,
                    1.0 + prob_.epsilon() / kEpsDivisor),
@@ -153,15 +120,26 @@ optional<Complex> Poser::PickPoint1(const Pose& pose, const int v, const int u)
 optional<Complex> Poser::PickPoint2(const Pose& pose, const int v, const int u,
                                     const int t)
 {
-    const vector<Complex>& orig = prob_.vertices();
+    unordered_set<Complex> set;
+    {
+        const int min = prob_.GetMinNorm(Edge{u, v});
+        const int max = prob_.GetMaxNorm(Edge{u, v});
+        for (int d = min; d <= max; d++) {
+            for (Complex dz : move_table_.Get(d)) set.insert(pose[u] + dz);
+        }
+    }
+    {
+        const int min = prob_.GetMinNorm(Edge{t, v});
+        const int max = prob_.GetMaxNorm(Edge{t, v});
+        for (int d = min; d <= max; d++) {
+            for (Complex dz : move_table_.Get(d)) set.erase(pose[t] + dz);
+        }
+    }
 
-    const vector<Complex> zs = GetIntersections(
-        Circle{pose[t], sqrt(norm(orig[v] - orig[t]) * eps_chooser_(rng_))},
-        Circle{pose[u], sqrt(norm(orig[v] - orig[u]) * eps_chooser_(rng_))}
-    );
-    if (zs.empty()) return nullopt;
+    if (set.empty()) return nullopt;
 
-    return (bool_chooser_(rng_)) ? zs.front() : zs.back();
+    vector<Complex> out(1);
+    return *sample(set.begin(), set.end(), out.begin(), 1, rng_);
 }
 
 optional<Complex> Poser::PickFromHole(const Pose& pose, const int v)
