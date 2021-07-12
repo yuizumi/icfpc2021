@@ -73,9 +73,9 @@ struct Config
 
     double prob_hole = 0.5;
 
-    int num_poses = 1000;
-    int max_total_steps = 1000000;
-    int max_local_steps = 50;
+    int num_poses = 5000;
+    int max_total_steps = 50000;
+    int max_local_steps = 25;
 
     static Config FromJson(const Json& json);
 };
