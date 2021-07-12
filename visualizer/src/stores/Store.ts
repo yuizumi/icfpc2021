@@ -200,11 +200,11 @@ export class Store {
   @action.bound showHints(): void {
     if (this.state.problem != null && this.state.solution != null) {
       const hole = this.state.problem.hole;
-      const hints: { index: number; z: [number, number] }[] = [];
+      const hints: [number, [number, number]][] = [];
       this.state.solution.vertices.forEach((v, index) => {
         for (const z of hole) {
           if (v[0] == z[0] && v[1] == z[1]) {
-            hints.push({ index, z });
+            hints.push([ index, z ]);
           }
         }
       });
