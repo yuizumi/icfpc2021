@@ -221,7 +221,7 @@ bool Hole::Contains(const LineSeg& line) const
     for (int i = 1; i < touching.size(); i++) {
         if (touching[i - 1] != touching[i]) {
             const Complex middle = (touching[i - 1] + touching[i]) / 2.0;
-            if (!Contains(middle)) return false;
+            if (ComputeState(middle) == State::kOutside) return false;
         }
     }
 
@@ -313,15 +313,17 @@ public:
     int GetMinNorm(const Edge& edge) const
     {
         const std::vector<Complex>& vertices = figure_.vertices;
+        const double eps = epsilon_ / kEpsDivisor;
         const double d_orig = std::norm(vertices[edge.u] - vertices[edge.v]);
-        return static_cast<int>(std::ceil(d_orig * (1.0 - epsilon_)));
+        return static_cast<int>(std::ceil(d_orig * (1.0 - eps)));
     }
 
     int GetMaxNorm(const Edge& edge) const
     {
         const std::vector<Complex>& vertices = figure_.vertices;
+        const double eps = epsilon_ / kEpsDivisor;
         const double d_orig = std::norm(vertices[edge.u] - vertices[edge.v]);
-        return static_cast<int>(std::floor(d_orig * (1.0 + epsilon_)));
+        return static_cast<int>(std::ceil(d_orig * (1.0 + eps)));
     }
 
     bool IsValidNorm(const Edge& edge, const double d_pose) const
