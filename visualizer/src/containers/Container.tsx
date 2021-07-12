@@ -11,6 +11,7 @@ import { Rotation } from "../components/Rotation";
 import { ZRotation } from "../components/ZRotation";
 import { Round } from "../components/Round";
 import { SegRotation } from "../components/SegRotation";
+import { Fit } from "../components/Fit";
 
 export const Container = observer(({ store }: { store: Store }) => (
     <BootstrapContainer>
@@ -40,10 +41,14 @@ export const Container = observer(({ store }: { store: Store }) => (
                 <SegRotation
                     onSubmit={(v, from, to) => store.onSegRotate(v, from, to)}
                 />
+                <Fit
+                    onSubmit={(r) => store.onFit(r)}
+                />
                 <Round
                     onRound={() => store.onRound()}
                     onCeil={() => store.onCeil()}
                     onFloor={() => store.onFloor()}
+                    logHints={() => store.showHints()}
                 />
                 <EditBox
                     solution={store.state.solution}

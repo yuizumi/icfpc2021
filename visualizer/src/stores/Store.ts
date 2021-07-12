@@ -180,4 +180,35 @@ export class Store {
       this.state.solution = { vertices: a };
     }
   }
+
+  @action.bound onFit(r: number): void {
+    if (this.state.problem != null && this.state.solution != null) {
+      const hole = this.state.problem.hole;
+      this.state.solution = {
+        vertices: this.state.solution.vertices.map(v => {
+          for (const h of hole) {
+            if (Math.hypot(v[0] - h[0], v[1] - h[1]) <= r) {
+              return h;
+            }
+          }
+          return v;
+        })
+      };
+    }
+  }
+
+  @action.bound showHints(): void {
+    if (this.state.problem != null && this.state.solution != null) {
+      const hole = this.state.problem.hole;
+      const hints: { index: number; z: [number, number] }[] = [];
+      this.state.solution.vertices.forEach((v, index) => {
+        for (const z of hole) {
+          if (v[0] == z[0] && v[1] == z[1]) {
+            hints.push({ index, z });
+          }
+        }
+      });
+      console.log(JSON.stringify(hints));
+    }
+  }
 }
