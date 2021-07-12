@@ -4,6 +4,7 @@ export type Props = {
     onRound: () => void;
     onFloor: () => void;
     onCeil: () => void;
+    logHints: () => void;
 };
 
 export const Round = (props: Props) => {
@@ -14,8 +15,9 @@ export const Round = (props: Props) => {
             }}
         >
             <input type="submit" value="切り捨て" onClick={() => props.onFloor()} />
-            <input type="submit" value="切り上げ" onClick={() => props.onCeil()}/>
+            <input type="submit" value="切り上げ" onClick={() => props.onCeil()} />
             <input type="submit" value="四捨五入" onClick={() => props.onRound()} />
+            <input type="submit" value="consoleにhintsを出力" onClick={() => props.logHints()} />
         </form>
     );
 };
