@@ -24,44 +24,6 @@ constexpr int kMaxTotalRetries = 50000;
 
 
 //------------------------
-//  Circle
-
-struct Circle { Complex z; double r; };
-
-inline int dblcmp(double x, double y)
-{
-    static constexpr double kEpsilon = 1e-9;
-
-    if (x > y)
-        return (x - y >= kEpsilon) ? +1 : 0;
-    else
-        return (y - x >= kEpsilon) ? -1 : 0;
-}
-
-inline std::vector<Complex> GetIntersections(
-    const Circle& c1, const Circle& c2)
-{
-    const double a = c1.r / std::abs(c2.z - c1.z);
-    const double b = c2.r / std::abs(c2.z - c1.z);
-
-    const double cos = (a * a + 1.0 - b * b) / (2.0 * a);
-
-    if (dblcmp(cos, -1.0) < 0 || dblcmp(cos, +1.0) > 0) {
-        return {};
-    }
-    if (dblcmp(cos, +1.0) == 0) {
-        return {c1.z + a * (c2.z - c1.z)};
-    }
-    if (dblcmp(cos, -1.0) == 0) {
-        return {c1.z - a * (c2.z - c1.z)};
-    }
-
-    const Complex w = std::polar(a, std::acos(cos));
-    return {c1.z + w * (c2.z - c1.z), c1.z + std::conj(w) * (c2.z - c1.z)};
-}
-
-
-//------------------------
 //  Poser
 
 class Poser

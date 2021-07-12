@@ -19,7 +19,17 @@ constexpr double kInf = std::numeric_limits<double>::infinity();
 //------------------------
 //  Utility
 
-int Sign(double x) { return (x > 0.0) - (x < 0.0); }
+inline int Sgn(double x) { return (x > 0.0) - (x < 0.0); }
+
+inline int Cmp(double x, double y)
+{
+    static constexpr double kEpsilon = 1e-9;
+
+    if (x > y)
+        return (x - y >= kEpsilon) ? +1 : 0;
+    else
+        return (y - x >= kEpsilon) ? -1 : 0;
+}
 
 namespace std {
 template <> struct hash<Complex>
@@ -69,7 +79,7 @@ inline int Ccw(const LineSeg& l, Complex z)
 {
     const Complex z1 = z - l.z1;
     const Complex z2 = l.z2 - l.z1;
-    return Sign(z1.real() * z2.imag() - z2.real() * z1.imag());
+    return Sgn(z1.real() * z2.imag() - z2.real() * z1.imag());
 }
 
 inline IntersectsResult Intersects(const LineSeg& l, const LineSeg& m)
@@ -77,6 +87,33 @@ inline IntersectsResult Intersects(const LineSeg& l, const LineSeg& m)
     const int sign_l = Ccw(l, m.z1) * Ccw(l, m.z2);
     const int sign_m = Ccw(m, l.z1) * Ccw(m, l.z2);
     return static_cast<IntersectsResult>(1 - std::max(sign_l, sign_m));
+}
+
+
+//------------------------
+//  Circle
+
+struct Circle { Complex z; double r; };
+
+inline std::vector<Complex> GetIntersections(const Circle& c1,
+                                             const Circle& c2)
+{
+    const Complex dz = c2.z - c1.z;
+
+    const double cos = (c1.r * c1.r - c2.r * c2.r + std::norm(dz))
+        / (2.0 * c1.r * std::abs(dz));
+
+    if (Cmp(cos, -1.0) < 0 || Cmp(cos, +1.0) > 0) {
+        return {};
+    }
+
+    const Complex rot = dz / std::abs(dz);
+
+    if (Cmp(cos, -1.0) == 0) return {c1.z - c1.r * rot};
+    if (Cmp(cos, +1.0) == 0) return {c1.z + c1.r * rot};
+
+    const Complex w = std::polar(c1.r, std::acos(cos));
+    return {c1.z + w * rot, c1.z + std::conj(w) * rot};
 }
 
 
