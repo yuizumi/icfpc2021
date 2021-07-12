@@ -11,6 +11,23 @@ export class ViewCanvas extends React.Component<Props> {
     render() {
         try {
             const viewBox = this.props.problem && this.computeViewBox(this.props.problem);
+            const edges = this.props.problem?.figure.edges;
+            const ok: [number, number][] = [];
+            const ng: [number, number][] = [];
+            if (this.props.problem != null && this.props.solution != null && edges != null) {
+                for (let i = 0; i < edges.length; i++) {
+                    const u = this.props.problem.figure.vertices[edges[i][0]];
+                    const v = this.props.problem.figure.vertices[edges[i][1]];
+                    const u_ = this.props.solution.vertices[edges[i][0]];
+                    const v_ = this.props.solution.vertices[edges[i][1]];
+                    const d = Math.abs(Math.hypot(v_[0] - u_[0], v_[1] - u_[1]) / Math.hypot(v[0] - u[0], v[1] - u[1]) - 1) * 1000000;
+                    if (d < this.props.problem.epsilon + 1) {
+                        ok.push(edges[i]);
+                    } else {
+                        ng.push(edges[i]);
+                    }
+                }
+            }
             return (
                 <svg
                     id="svg"
@@ -64,7 +81,7 @@ export class ViewCanvas extends React.Component<Props> {
                         })()}
                     />
                     <path
-                        id="output"
+                        id="output-ok"
                         style={{
                             fill: "none",
                             stroke: "#f00",
@@ -72,7 +89,22 @@ export class ViewCanvas extends React.Component<Props> {
                         }}
                         d={(() => {
                             if (this.props.problem != null && this.props.solution != null) {
-                                return this.buildFigurePath(this.props.solution.vertices, this.props.problem.figure.edges);
+                                return this.buildFigurePath(this.props.solution.vertices, ok);
+                            } else {
+                                return undefined;
+                            }
+                        })()}
+                    />
+                    <path
+                        id="output-ng"
+                        style={{
+                            fill: "none",
+                            stroke: "#00f",
+                            strokeLinecap: "round"
+                        }}
+                        d={(() => {
+                            if (this.props.problem != null && this.props.solution != null) {
+                                return this.buildFigurePath(this.props.solution.vertices, ng);
                             } else {
                                 return undefined;
                             }
